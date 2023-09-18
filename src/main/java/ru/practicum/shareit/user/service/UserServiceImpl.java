@@ -34,7 +34,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> update(User user, long id) {
-        //System.out.println(userRepository.update(user, id));
         return Optional.of(userRepository.update(user, id)
                 .orElseThrow(() -> new UserRepeatEmailException(user.getEmail())));
     }
