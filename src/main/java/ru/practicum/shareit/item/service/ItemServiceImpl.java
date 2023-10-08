@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.practicum.shareit.booking.StatusBooking;
-import ru.practicum.shareit.booking.dto.BookingInfoDto;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.item.error.CommentNotAllowedException;
 import ru.practicum.shareit.item.error.ItemNotFoundByUserException;
@@ -15,20 +14,14 @@ import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
-
-    private static final int LAST_BOOKING = 0;
-    private static final int NEXT_BOOKING = 1;
-    private static final int ONE_USER = 1;
-
     private final UserService userService;
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
@@ -87,16 +80,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Item fillBookingInfoByItem(final Item item, final long userId) {
-        List<BookingInfoDto> bookingInfo = bookingRepository.getFirst2ByItemIdAndStatusOrderByStartAsc(item.getId(), StatusBooking.APPROVED);
-        for (int i = 0; i < bookingInfo.size(); i++) {
-            if (item.getOwner().getId() == userId) {
-                item.setLastBooking(bookingInfo.get(LAST_BOOKING));
-                if (bookingInfo.size() == ONE_USER) {
-                    item.setNextBooking(bookingInfo.get(LAST_BOOKING));
-                } else {
-                    item.setNextBooking(bookingInfo.get(NEXT_BOOKING));
-                }
-            }
+        if (item.getOwner().getId() == userId) {
+            item.setNextBooking(bookingRepository.findFirstByItemIdAndStartAfterAndStatusOrderByStartAsc(item.getId(),
+                    Timestamp.valueOf(LocalDateTime.now()), StatusBooking.APPROVED));
+            item.setLastBooking(bookingRepository.findFirstByItemIdAndStartBeforeAndStatusOrderByEndDesc(item.getId(),
+                    Timestamp.valueOf(LocalDateTime.now()), StatusBooking.APPROVED));
         }
         return item;
     }

@@ -27,22 +27,22 @@ public class ItemController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{id}")
     public ItemDto getById(@PathVariable final long id,
-                        @RequestHeader(USER_ID_HEADER) final long userId) {
+                           @RequestHeader(USER_ID_HEADER) final long userId) {
         return ItemMapper.toItemDto(itemService.getById(id, userId));
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ItemDto add(@Valid @RequestBody final ItemDto dto,
-                                    @RequestHeader(USER_ID_HEADER) final long userId) {
+                       @RequestHeader(USER_ID_HEADER) final long userId) {
         return ItemMapper.toItemDto(itemService.add(ItemMapper.toItem(dto, userId), userId));
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/{id}")
     public ItemDto update(@RequestBody final ItemDto dto,
-                                    @PathVariable final long id,
-                                    @RequestHeader(USER_ID_HEADER) final long userId) {
+                          @PathVariable final long id,
+                          @RequestHeader(USER_ID_HEADER) final long userId) {
         return ItemMapper.toItemDto(itemService.update(ItemMapper.toItem(dto, userId), id, userId));
     }
 
