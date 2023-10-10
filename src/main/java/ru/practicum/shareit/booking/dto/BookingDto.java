@@ -16,14 +16,14 @@ public class BookingDto implements Serializable {
 
     @Data
     @Builder
-    public static class Booker {
+    public static class Booker implements Serializable {
         private final long id;
         private final String name;
     }
 
     @Data
     @Builder
-    public static class Item {
+    public static class Item implements Serializable {
         private final long id;
         private final String name;
     }
