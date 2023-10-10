@@ -4,7 +4,6 @@ import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.item.dto.ItemBookingResponseDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -12,11 +11,14 @@ import java.sql.Timestamp;
 
 @UtilityClass
 public class BookingMapper {
-    public static BookingDto toBookingDto(Booking booking) {
+    public BookingDto toBookingDto(Booking booking) {
         return BookingDto.builder()
                 .id(booking.getId())
-                .booker(booking.getBooker())
-                .item(ItemBookingResponseDto.builder()
+                .booker(BookingDto.Booker.builder()
+                        .id(booking.getBooker().getId())
+                        .name(booking.getBooker().getName())
+                        .build())
+                .item(BookingDto.Item.builder()
                         .id(booking.getItem().getId())
                         .name(booking.getItem().getName())
                         .build())
@@ -26,7 +28,7 @@ public class BookingMapper {
                 .build();
     }
 
-    public static Booking toBooking(BookingResponseDto bookingDto, final long userId) {
+    public Booking toBooking(BookingResponseDto bookingDto, final long userId) {
         return Booking.builder()
                 .booker(User.builder()
                         .id(userId)

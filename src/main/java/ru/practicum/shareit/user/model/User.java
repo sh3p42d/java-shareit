@@ -35,7 +35,7 @@ public class User implements Serializable {
         }
 
         User user = (User) o;
-        return id != null && Objects.equals(id, user.id);
+        return id != null && Objects.equals(email, user.email);
     }
 
     @Override

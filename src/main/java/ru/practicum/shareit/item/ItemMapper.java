@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class ItemMapper {
-    public static ItemDto toItemDto(Item item) {
+    public ItemDto toItemDto(Item item) {
         return ItemDto.builder()
                 .id(item.getId())
                 .owner(item.getOwner().getId())
@@ -31,7 +31,7 @@ public class ItemMapper {
                 .build();
     }
 
-    public static Item toItem(ItemDto itemDto, long userId) {
+    public Item toItem(ItemDto itemDto, long userId) {
         return Item.builder()
                 .id(itemDto.getId())
                 .owner(User.builder()

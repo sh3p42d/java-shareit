@@ -6,10 +6,12 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Table(name = "comments")
 public class Comment {

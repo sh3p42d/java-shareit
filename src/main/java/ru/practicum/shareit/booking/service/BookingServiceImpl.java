@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.StatusBooking;
@@ -12,6 +13,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.service.UserService;
 
+import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Arrays;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemService itemService;
@@ -29,19 +32,21 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> findAll(final long bookerId, final String state) {
         Timestamp timestampNow = Timestamp.from(Instant.now());
+        Sort sort = Sort.by("start").descending();
+
         switch (bookingStateAndIdCheck(bookerId, state)) {
             case ALL:
-                return bookingRepository.findAllByBookerIdOrderByStartDesc(bookerId);
+                return bookingRepository.findAllByBookerId(bookerId, sort);
             case WAITING:
-                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(bookerId, StatusBooking.WAITING);
+                return bookingRepository.findAllByBookerIdAndStatus(bookerId, StatusBooking.WAITING, sort);
             case REJECTED:
-                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(bookerId, StatusBooking.REJECTED);
+                return bookingRepository.findAllByBookerIdAndStatus(bookerId, StatusBooking.REJECTED, sort);
             case FUTURE:
-                return bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(bookerId, timestampNow);
+                return bookingRepository.findAllByBookerIdAndStartAfter(bookerId, timestampNow, sort);
             case CURRENT:
-                return bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(bookerId, timestampNow, timestampNow);
+                return bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(bookerId, timestampNow, timestampNow, sort);
             case PAST:
-                return bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(bookerId, timestampNow);
+                return bookingRepository.findAllByBookerIdAndEndBefore(bookerId, timestampNow, sort);
             default:
                 throw new BookingWrongStateException(state);
         }
@@ -50,19 +55,21 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> findAllOwner(long ownerId, String state) {
         Timestamp timestampNow = Timestamp.from(Instant.now());
+        Sort sort = Sort.by("start").descending();
+
         switch (bookingStateAndIdCheck(ownerId, state)) {
             case ALL:
-                return bookingRepository.findAllByItemOwnerIdOrderByStartDesc(ownerId);
+                return bookingRepository.findAllByItemOwnerId(ownerId, sort);
             case WAITING:
-                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(ownerId, StatusBooking.WAITING);
+                return bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, StatusBooking.WAITING, sort);
             case REJECTED:
-                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(ownerId, StatusBooking.REJECTED);
+                return bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, StatusBooking.REJECTED, sort);
             case FUTURE:
-                return bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(ownerId, timestampNow);
+                return bookingRepository.findAllByItemOwnerIdAndStartAfter(ownerId, timestampNow, sort);
             case CURRENT:
-                return bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(ownerId, timestampNow, timestampNow);
+                return bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfter(ownerId, timestampNow, timestampNow, sort);
             case PAST:
-                return bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(ownerId, timestampNow);
+                return bookingRepository.findAllByItemOwnerIdAndEndBefore(ownerId, timestampNow, sort);
             default:
                 throw new BookingWrongStateException(state);
         }
@@ -76,6 +83,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking add(final Booking booking, final long bookerId) {
         Optional<Item> item = Optional.of(itemService.getById(booking.getItem().getId(), bookerId));
         item.filter(Item::getAvailable)
@@ -90,6 +98,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking approved(final long id, final long owner, final boolean approved) {
         Booking booking = bookingRepository.findById(id)
                 .filter(b -> b.getItem().getOwner().getId() == owner)
