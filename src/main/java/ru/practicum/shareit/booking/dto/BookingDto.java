@@ -13,6 +13,9 @@ public class BookingDto implements Serializable {
     private final long id;
     private final Booker booker;
     private final Item item;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
+    private final StatusBooking status;
 
     @Data
     @Builder
@@ -27,8 +30,4 @@ public class BookingDto implements Serializable {
         private final long id;
         private final String name;
     }
-
-    private final LocalDateTime start;
-    private final LocalDateTime end;
-    private final StatusBooking status;
 }
