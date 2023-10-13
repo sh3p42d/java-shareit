@@ -10,11 +10,11 @@ public interface ItemService {
 
     Item getById(long id, long userId);
 
-    List<Item> getAll(long userId);
+    List<Item> getAll(long userId, int from, int size);
 
     Item update(Item item, long id, long userId);
 
-    List<Item> search(String text);
+    List<Item> search(String text, int from, int size);
 
     Comment addComment(Comment dto, long author, long itemId);
 }

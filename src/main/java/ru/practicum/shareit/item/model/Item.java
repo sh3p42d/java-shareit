@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.Hibernate;
 import ru.practicum.shareit.booking.dto.BookingInfoDto;
 import ru.practicum.shareit.item.dto.CommentInfoDto;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -42,6 +43,10 @@ public class Item {
     @Transient
     @ToString.Exclude
     private BookingInfoDto nextBooking;
+    @ManyToOne
+    @JoinColumn(name = "request", referencedColumnName = "id")
+    @ToString.Exclude
+    private ItemRequest request;
 
     @Override
     public boolean equals(Object o) {

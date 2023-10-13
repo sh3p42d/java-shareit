@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingState;
@@ -30,46 +31,48 @@ public class BookingServiceImpl implements BookingService {
     private final UserService userService;
 
     @Override
-    public List<Booking> findAll(final long bookerId, final String state) {
+    public List<Booking> findAll(final long bookerId, final String state, final int from, final int size) {
         Timestamp timestampNow = Timestamp.from(Instant.now());
         Sort sort = Sort.by("start").descending();
+        PageRequest page = PageRequest.of(from / size, size, sort);
 
         switch (bookingStateAndIdCheck(bookerId, state)) {
             case ALL:
-                return bookingRepository.findAllByBookerId(bookerId, sort);
+                return bookingRepository.findAllByBookerId(bookerId, page);
             case WAITING:
-                return bookingRepository.findAllByBookerIdAndStatus(bookerId, StatusBooking.WAITING, sort);
+                return bookingRepository.findAllByBookerIdAndStatus(bookerId, StatusBooking.WAITING, page);
             case REJECTED:
-                return bookingRepository.findAllByBookerIdAndStatus(bookerId, StatusBooking.REJECTED, sort);
+                return bookingRepository.findAllByBookerIdAndStatus(bookerId, StatusBooking.REJECTED, page);
             case FUTURE:
-                return bookingRepository.findAllByBookerIdAndStartAfter(bookerId, timestampNow, sort);
+                return bookingRepository.findAllByBookerIdAndStartAfter(bookerId, timestampNow, page);
             case CURRENT:
-                return bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(bookerId, timestampNow, timestampNow, sort);
+                return bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(bookerId, timestampNow, timestampNow, page);
             case PAST:
-                return bookingRepository.findAllByBookerIdAndEndBefore(bookerId, timestampNow, sort);
+                return bookingRepository.findAllByBookerIdAndEndBefore(bookerId, timestampNow, page);
             default:
                 throw new BookingWrongStateException(state);
         }
     }
 
     @Override
-    public List<Booking> findAllOwner(long ownerId, String state) {
+    public List<Booking> findAllOwner(long ownerId, String state, final int from, final int size) {
         Timestamp timestampNow = Timestamp.from(Instant.now());
         Sort sort = Sort.by("start").descending();
+        PageRequest page = PageRequest.of(from / size, size, sort);
 
         switch (bookingStateAndIdCheck(ownerId, state)) {
             case ALL:
-                return bookingRepository.findAllByItemOwnerId(ownerId, sort);
+                return bookingRepository.findAllByItemOwnerId(ownerId, page);
             case WAITING:
-                return bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, StatusBooking.WAITING, sort);
+                return bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, StatusBooking.WAITING, page);
             case REJECTED:
-                return bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, StatusBooking.REJECTED, sort);
+                return bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, StatusBooking.REJECTED, page);
             case FUTURE:
-                return bookingRepository.findAllByItemOwnerIdAndStartAfter(ownerId, timestampNow, sort);
+                return bookingRepository.findAllByItemOwnerIdAndStartAfter(ownerId, timestampNow, page);
             case CURRENT:
-                return bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfter(ownerId, timestampNow, timestampNow, sort);
+                return bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfter(ownerId, timestampNow, timestampNow, page);
             case PAST:
-                return bookingRepository.findAllByItemOwnerIdAndEndBefore(ownerId, timestampNow, sort);
+                return bookingRepository.findAllByItemOwnerIdAndEndBefore(ownerId, timestampNow, page);
             default:
                 throw new BookingWrongStateException(state);
         }

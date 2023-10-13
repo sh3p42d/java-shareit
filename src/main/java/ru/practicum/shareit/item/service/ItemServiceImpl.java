@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,9 +47,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getAll(final long userId) {
+    public List<Item> getAll(final long userId, final int from, final int size) {
         Sort sort = Sort.by("id").ascending();
-        List<Item> itemList = itemRepository.findAllByOwnerId(userId, sort);
+        List<Item> itemList = itemRepository.findAllByOwnerId(userId, PageRequest.of(from / size, size, sort));
 
         return itemList.stream()
                 .map(item -> fillBookingInfoByItem(item, userId))
@@ -71,11 +72,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> search(final String text) {
+    public List<Item> search(final String text, final int from, final int size) {
         if (!StringUtils.hasText(text)) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text);
+        return itemRepository.findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text, PageRequest.of(from / size, size));
     }
 
     @Override
