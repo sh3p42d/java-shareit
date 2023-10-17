@@ -10,5 +10,5 @@ import java.util.List;
 public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> {
     List<ItemRequest> findAllByAuthorIdOrderByCreatedAsc(Long authorId);
 
-    Page<ItemRequest> findAllByAuthorIdNotOrderByCreatedAsc(Pageable pageable, Long authorId);
+    Page<ItemRequest> findAllByAuthorIdNotOrderByCreatedAsc(Long authorId, Pageable pageable);
 }

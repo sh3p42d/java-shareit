@@ -49,7 +49,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequest> getPage(final int from, final int size, final long userId) {
         userService.getById(userId);
-        return itemRequestRepository.findAllByAuthorIdNotOrderByCreatedAsc(PageRequest.of(from / size, size), userId)
+        return itemRequestRepository.findAllByAuthorIdNotOrderByCreatedAsc(userId, PageRequest.of(from / size, size))
                 .get()
                 .map(this::fillItemById)
                 .collect(Collectors.toList());
