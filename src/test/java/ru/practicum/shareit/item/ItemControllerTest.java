@@ -11,9 +11,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import ru.practicum.shareit.helpers.GeneratorConverterHelper;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.error.CommentNotAllowedException;
+import ru.practicum.shareit.item.error.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
@@ -22,6 +25,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -76,6 +81,24 @@ class ItemControllerTest extends GeneratorConverterHelper {
     }
 
     @Test
+    void shouldNotAddItem() throws Exception {
+        MvcResult result = mvc.perform(post(url)
+                        .content(mapper.writeValueAsString(ItemDto.builder()
+                                        .id(item.getId())
+                                        .build()))
+                        .header(USER_REQUEST_HEADER, item.getOwner().getId())
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Статус доступности Item не может быть пустым"));
+        assertTrue(result.getResolvedException().getMessage().contains("Описание Item не может быть пустым"));
+        assertTrue(result.getResolvedException().getMessage().contains("Имя Item не может быть пустым"));
+    }
+
+    @Test
     void shouldGetItemById() throws Exception {
         when(itemService.getById(anyLong(), anyLong())).thenReturn(item);
 
@@ -89,6 +112,23 @@ class ItemControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$.description", is(item.getDescription())))
                 .andExpect(jsonPath("$.owner", is(item.getOwner().getId().intValue())))
                 .andExpect(jsonPath("$.available", is(true)));
+
+        verify(itemService, times(1)).getById(anyLong(), anyLong());
+    }
+
+    @Test
+    void shouldNotGetItemById() throws Exception {
+        when(itemService.getById(anyLong(), anyLong())).thenThrow(new ItemNotFoundException(10L));
+
+        MvcResult result = mvc.perform(get(url + "/" + 10)
+                        .header(USER_REQUEST_HEADER, item.getOwner().getId())
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Item с id=10 не найден"));
 
         verify(itemService, times(1)).getById(anyLong(), anyLong());
     }
@@ -134,6 +174,24 @@ class ItemControllerTest extends GeneratorConverterHelper {
     }
 
     @Test
+    void shouldNotUpdateItem() throws Exception {
+        when(itemService.update(any(Item.class), anyLong(), anyLong())).thenThrow(new ItemNotFoundException(10L));
+
+        MvcResult result = mvc.perform(patch(url + "/" + 10)
+                        .content(mapper.writeValueAsString(itemDto))
+                        .header(USER_REQUEST_HEADER, item.getOwner().getId())
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Item с id=10 не найден"));
+
+        verify(itemService, times(1)).update(any(Item.class), anyLong(), anyLong());
+    }
+
+    @Test
     void shouldSearchItem() throws Exception {
         when(itemService.search(anyString(), anyInt(), anyInt())).thenReturn(List.of(item));
 
@@ -173,6 +231,28 @@ class ItemControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$.text", is(comment.getText())))
                 .andExpect(jsonPath("$.authorName", is(comment.getAuthor().getName())))
                 .andExpect(jsonPath("$.created", notNullValue()));
+
+        verify(itemService, times(1)).addComment(any(Comment.class), anyLong(), anyLong());
+    }
+
+    @Test
+    void shouldNotAddCommentToItem() throws Exception {
+        final Comment comment = generateComment(item);
+        final CommentDto commentDto = commentToCommentDto(comment);
+
+        when(itemService.addComment(any(Comment.class), anyLong(), anyLong()))
+                .thenThrow(new CommentNotAllowedException(10L, 20L));
+
+        MvcResult result = mvc.perform(post(url + "/" + 20 + "/comment")
+                        .content(mapper.writeValueAsString(commentDto))
+                        .header(USER_REQUEST_HEADER, 10L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("User с id=10 не может оставить Comment для Item с id=20."));
 
         verify(itemService, times(1)).addComment(any(Comment.class), anyLong(), anyLong());
     }

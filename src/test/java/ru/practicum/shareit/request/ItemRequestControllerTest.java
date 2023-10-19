@@ -11,8 +11,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import ru.practicum.shareit.helpers.GeneratorConverterHelper;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.error.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
@@ -21,6 +23,8 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -74,6 +78,22 @@ class ItemRequestControllerTest extends GeneratorConverterHelper {
     }
 
     @Test
+    void shouldNotAddItemRequest() throws Exception {
+        MvcResult result = mvc.perform(post(url)
+                        .content(mapper.writeValueAsString(ItemRequestDto.builder()
+                                .id(1L)
+                                .build()))
+                        .header(USER_REQUEST_HEADER, itemRequest.getAuthor().getId())
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Описание не может быть пустым."));
+    }
+
+    @Test
     void shouldGetItemRequestById() throws Exception {
         when(itemRequestService.getById(anyLong(), anyLong())).thenReturn(itemRequest);
 
@@ -87,6 +107,22 @@ class ItemRequestControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$.created", is(itemRequest.getCreated().toLocalDateTime().toString())))
                 .andExpect(jsonPath("$.items", hasSize(1)));
 
+        verify(itemRequestService, times(1)).getById(anyLong(), anyLong());
+    }
+
+    @Test
+    void shouldNotGetItemRequestById() throws Exception {
+        when(itemRequestService.getById(anyLong(), anyLong())).thenThrow(new ItemRequestNotFoundException(10L));
+
+        MvcResult result = mvc.perform(get(url + "/" + 10)
+                        .header(USER_REQUEST_HEADER, itemRequest.getAuthor().getId())
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Request с id=10 не найден"));
         verify(itemRequestService, times(1)).getById(anyLong(), anyLong());
     }
 

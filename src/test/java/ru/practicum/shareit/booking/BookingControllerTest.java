@@ -11,21 +11,26 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import ru.practicum.shareit.booking.error.BookingNotFoundException;
+import ru.practicum.shareit.booking.error.BookingStateNotAvailable;
+import ru.practicum.shareit.booking.error.BookingWrongStateException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.helpers.GeneratorConverterHelper;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -76,6 +81,26 @@ public class BookingControllerTest extends GeneratorConverterHelper {
     }
 
     @Test
+    void shouldNotAddWrongBooking() throws Exception {
+        MvcResult result = mvc.perform(post(url)
+                        .content(mapper.writeValueAsString(BookingResponseDto.builder()
+                                .itemId(10)
+                                .start(LocalDateTime.now().minusDays(1))
+                                .end(LocalDateTime.now().minusDays(2))
+                                .build())
+                        )
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .header(USER_REQUEST_HEADER, booking.getBooker().getId())
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Дата начала бронирования не может быть в прошлом"));
+        assertTrue(result.getResolvedException().getMessage().contains("Дата конца бронирования не может быть в прошлом"));
+    }
+
+    @Test
     void shouldGetBookingById() throws Exception {
         when(bookingService.getById(anyLong(), anyLong())).thenReturn(booking);
 
@@ -90,6 +115,23 @@ public class BookingControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$.start", is(booking.getStart().toLocalDateTime().toString())))
                 .andExpect(jsonPath("$.end", is(booking.getEnd().toLocalDateTime().toString())))
                 .andExpect(jsonPath("$.status", is(booking.getStatus().toString())));
+
+        verify(bookingService, times(1)).getById(anyLong(), anyLong());
+    }
+
+    @Test
+    void shouldNotGetBookingById() throws Exception {
+        when(bookingService.getById(anyLong(), anyLong())).thenThrow(new BookingNotFoundException(10L));
+
+        MvcResult result = mvc.perform(get(url + "/" + 10)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .header(USER_REQUEST_HEADER, booking.getBooker().getId())
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Booking с id=10 не найден"));
 
         verify(bookingService, times(1)).getById(anyLong(), anyLong());
     }
@@ -112,6 +154,25 @@ public class BookingControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$[0].end", is(booking.getEnd().toLocalDateTime().toString())))
                 .andExpect(jsonPath("$[0].status", is(booking.getStatus().toString())))
                 .andReturn();
+
+        verify(bookingService, times(1)).findAll(anyLong(), anyString(), anyInt(), anyInt());
+    }
+
+    @Test
+    void shouldNotGetAllBooking() throws Exception {
+        when(bookingService.findAll(anyLong(), anyString(), anyInt(), anyInt()))
+                .thenThrow(new BookingWrongStateException("WRONG STATE"));
+
+        MvcResult result = mvc.perform(get(url)
+                        .param("state", "WRONG STATE")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .header(USER_REQUEST_HEADER, booking.getBooker().getId())
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isInternalServerError())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("WRONG STATE"));
 
         verify(bookingService, times(1)).findAll(anyLong(), anyString(), anyInt(), anyInt());
     }
@@ -141,6 +202,25 @@ public class BookingControllerTest extends GeneratorConverterHelper {
     }
 
     @Test
+    void shouldNotGetAllOwnerBooking() throws Exception {
+        when(bookingService.findAllOwner(anyLong(), anyString(), anyInt(), anyInt()))
+                .thenThrow(new BookingWrongStateException("WRONG STATE"));
+
+        MvcResult result = mvc.perform(get(url + "/owner")
+                        .param("state", "WRONG STATE")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .header(USER_REQUEST_HEADER, booking.getBooker().getId())
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isInternalServerError())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("WRONG STATE"));
+
+        verify(bookingService, times(1)).findAllOwner(anyLong(), anyString(), anyInt(), anyInt());
+    }
+
+    @Test
     void shouldUpdateBooking() throws Exception {
         when(bookingService.approved(anyLong(), anyLong(), anyBoolean())).thenReturn(booking);
 
@@ -156,6 +236,25 @@ public class BookingControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$.start", is(booking.getStart().toLocalDateTime().toString())))
                 .andExpect(jsonPath("$.end", is(booking.getEnd().toLocalDateTime().toString())))
                 .andExpect(jsonPath("$.status", is(booking.getStatus().toString())));
+
+        verify(bookingService, times(1)).approved(anyLong(), anyLong(), anyBoolean());
+    }
+
+    @Test
+    void shouldNotUpdateBooking() throws Exception {
+        when(bookingService.approved(anyLong(), anyLong(), anyBoolean())).thenThrow(new BookingStateNotAvailable(booking.getId()));
+
+        MvcResult result = mvc.perform(patch(url + "/" + booking.getId())
+                        .param("approved", "true")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .header(USER_REQUEST_HEADER, booking.getBooker().getId())
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage()
+                .contains("Статус Booking с id=" + booking.getId() + " уже подтвержден."));
 
         verify(bookingService, times(1)).approved(anyLong(), anyLong(), anyBoolean());
     }

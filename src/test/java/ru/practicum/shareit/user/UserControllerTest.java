@@ -11,8 +11,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import ru.practicum.shareit.helpers.GeneratorConverterHelper;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.error.UserNotFoundException;
+import ru.practicum.shareit.user.error.UserRepeatEmailException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -21,6 +24,8 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -73,6 +78,37 @@ class UserControllerTest extends GeneratorConverterHelper {
     }
 
     @Test
+    void shouldNotAddUser() throws Exception {
+        MvcResult result = mvc.perform(post(url)
+                        .content(mapper.writeValueAsString(UserDto.builder()
+                                .id(1L)
+                                .build()))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("Почта пользователя не может быть пустой"));
+    }
+
+    @Test
+    void shouldNotRepeatEmail() throws Exception {
+        when(userService.add(any(User.class))).thenThrow(new UserRepeatEmailException("email@email.com"));
+
+        MvcResult result = mvc.perform(post(url)
+                        .content(mapper.writeValueAsString(userDto))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isConflict())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("User c email=email@email.com уже существует."));
+        verify(userService, times(1)).add(any(User.class));
+    }
+
+    @Test
     void shouldGetUserById() throws Exception {
         when(userService.getById(anyLong())).thenReturn(user);
 
@@ -84,6 +120,21 @@ class UserControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$.email", is(user.getEmail())))
                 .andExpect(jsonPath("$.name", is(user.getName())));
 
+        verify(userService, times(1)).getById(anyLong());
+    }
+
+    @Test
+    void shouldNotGetUserById() throws Exception {
+        when(userService.getById(anyLong())).thenThrow(new UserNotFoundException(10L));
+
+        MvcResult result = mvc.perform(get(url + "/" + 10)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("User с id=10 не найден."));
         verify(userService, times(1)).getById(anyLong());
     }
 
@@ -117,6 +168,22 @@ class UserControllerTest extends GeneratorConverterHelper {
                 .andExpect(jsonPath("$.name", is(user.getName())));
 
         verify(userService, times(1)).update(user, user.getId());
+    }
+
+    @Test
+    void shouldNotUpdateUser() throws Exception {
+        when(userService.update(any(User.class), anyLong())).thenThrow(new UserNotFoundException(10L));
+
+        MvcResult result = mvc.perform(patch(url + "/" + 10)
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertNotNull(result.getResolvedException());
+        assertTrue(result.getResolvedException().getMessage().contains("User с id=10 не найден."));
+        verify(userService, times(1)).update(any(User.class), anyLong());
     }
 
     @Test
