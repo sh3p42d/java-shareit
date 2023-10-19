@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.item.dto.ItemRequestInfoDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -10,6 +11,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+@UtilityClass
 public class ItemRequestMapper {
     public static ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
         return ItemRequestDto.builder()

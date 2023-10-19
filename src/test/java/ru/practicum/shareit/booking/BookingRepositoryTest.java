@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.dto.BookingInfoDto;
@@ -18,7 +19,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,104 +61,104 @@ public class BookingRepositoryTest extends GeneratorConverterHelper {
 
     @Test
     public void shouldFindAllByBookerId() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByBookerId(booker.getId(), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByBookerIdAndStatus() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByBookerIdAndStatus(booker.getId(), statusBooking, Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByBookerIdAndStartAfter() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByBookerIdAndStartAfter(booker.getId(), Timestamp.valueOf(timeNow.minusDays(1)), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByBookerIdAndStartBeforeAndEndAfter() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByBookerIdAndStartBeforeAndEndAfter(booker.getId(), Timestamp.valueOf(timeNow.plusDays(5)),
                         Timestamp.valueOf(timeNow.minusDays(5)), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByItemOwnerId() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByItemOwnerId(itemOwner.getId(), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByItemOwnerIdAndStatus() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByItemOwnerIdAndStatus(itemOwner.getId(), statusBooking, Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByItemOwnerIdAndStartAfter() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByItemOwnerIdAndStartAfter(itemOwner.getId(), Timestamp.valueOf(timeNow.minusDays(1)), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByItemOwnerIdAndStartBeforeAndEndAfter() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByItemOwnerIdAndStartBeforeAndEndAfter(itemOwner.getId(), Timestamp.valueOf(timeNow.plusDays(5)),
                         Timestamp.valueOf(timeNow.minusDays(5)), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByBookerIdAndEndBefore() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByBookerIdAndEndBefore(booker.getId(), Timestamp.valueOf(timeNow.plusDays(10)), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test
     public void shouldFindAllByItemOwnerIdAndEndBefore() {
-        List<Booking> result = bookingRepository
+        Page<Booking> result = bookingRepository
                 .findAllByItemOwnerIdAndEndBefore(itemOwner.getId(), Timestamp.valueOf(timeNow.plusDays(10)), Pageable.unpaged());
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertEquals(booking, result.get(0));
+        assertEquals(booking, result.getContent().get(0));
     }
 
     @Test

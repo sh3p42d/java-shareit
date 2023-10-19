@@ -52,7 +52,8 @@ public class ItemRepositoryTest extends GeneratorConverterHelper {
     @Test
     void shouldFindAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue() {
         List<Item> result = itemRepository
-                .findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(item.getName(), item.getName(), Pageable.unpaged());
+                .findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(item.getName(), item.getName(), Pageable.unpaged())
+                .getContent();
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
@@ -62,7 +63,8 @@ public class ItemRepositoryTest extends GeneratorConverterHelper {
     @Test
     void shouldFindAllByOwnerId() {
         List<Item> result = itemRepository
-                .findAllByOwnerId(itemOwner.getId(), Pageable.unpaged());
+                .findAllByOwnerId(itemOwner.getId(), Pageable.unpaged())
+                .getContent();
 
         assertNotNull(result);
         assertFalse(result.isEmpty());

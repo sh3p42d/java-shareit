@@ -20,9 +20,11 @@ public class Comment {
     private long id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item", referencedColumnName = "id")
+    @ToString.Exclude
     private Item item;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author", referencedColumnName = "id")
+    @ToString.Exclude
     private User author;
     @Column(name = "comment")
     private String text;

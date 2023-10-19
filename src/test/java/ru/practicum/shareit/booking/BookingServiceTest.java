@@ -1,13 +1,14 @@
 package ru.practicum.shareit.booking;
 
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.error.*;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -105,52 +106,50 @@ class BookingServiceTest extends GeneratorConverterHelper {
 
         when(mockBookingRepository
                 .findAllByBookerId(anyLong(), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> all = bookingService.findAll(bookerId, "ALL", 0, 10);
+        List<BookingDto> all = bookingService.findAll(bookerId, "ALL", 0, 10);
         assertEquals(testValueBooking.getId(), all.get(0).getId());
         assertEquals(testValueBooking.getBooker().getId(), all.get(0).getBooker().getId());
-        assertEquals(testValueBooking.getItem(), all.get(0).getItem());
-        assertEquals(testValueBooking.getStart(), all.get(0).getStart());
-        assertEquals(testValueBooking.getEnd(), all.get(0).getEnd());
+        assertEquals(testValueBooking.getItem().getId(), all.get(0).getItem().getId());
+        assertEquals(testValueBooking.getStart().toLocalDateTime(), all.get(0).getStart());
+        assertEquals(testValueBooking.getEnd().toLocalDateTime(), all.get(0).getEnd());
         assertEquals(testValueBooking.getStatus(), all.get(0).getStatus());
-        assertEquals(testValueBooking.toString(), all.get(0).toString());
-        assertEquals(testValueBooking.hashCode(), all.get(0).hashCode());
 
         when(mockBookingRepository
                 .findAllByBookerIdAndStatus(anyLong(), any(StatusBooking.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> waiting = bookingService.findAll(bookerId, "WAITING", 0, 10);
+        List<BookingDto> waiting = bookingService.findAll(bookerId, "WAITING", 0, 10);
         assertEquals(waiting.size(), 1);
 
         when(mockBookingRepository
                 .findAllByBookerIdAndStatus(anyLong(), any(StatusBooking.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> rejected = bookingService.findAll(bookerId, "REJECTED", 0, 10);
+        List<BookingDto> rejected = bookingService.findAll(bookerId, "REJECTED", 0, 10);
         assertEquals(rejected.size(), 1);
 
         when(mockBookingRepository
                 .findAllByBookerIdAndStartAfter(anyLong(), any(Timestamp.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> future = bookingService.findAll(bookerId, "FUTURE", 0, 10);
+        List<BookingDto> future = bookingService.findAll(bookerId, "FUTURE", 0, 10);
         assertEquals(future.size(), 1);
 
 
         when(mockBookingRepository
                 .findAllByBookerIdAndStartBeforeAndEndAfter(anyLong(), any(Timestamp.class), any(Timestamp.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> current = bookingService.findAll(bookerId, "CURRENT", 0, 10);
+        List<BookingDto> current = bookingService.findAll(bookerId, "CURRENT", 0, 10);
         assertEquals(current.size(), 1);
 
         when(mockBookingRepository
                 .findAllByBookerIdAndEndBefore(anyLong(), any(Timestamp.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> past = bookingService.findAll(bookerId, "PAST", 0, 10);
+        List<BookingDto> past = bookingService.findAll(bookerId, "PAST", 0, 10);
         assertEquals(past.size(), 1);
 
         verify(mockUserService, times(6))
@@ -173,52 +172,50 @@ class BookingServiceTest extends GeneratorConverterHelper {
 
         when(mockBookingRepository
                 .findAllByItemOwnerId(anyLong(), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> all = bookingService.findAllOwner(ownerId, "ALL", 0, 10);
+        List<BookingDto> all = bookingService.findAllOwner(ownerId, "ALL", 0, 10);
         assertEquals(testValueBooking.getId(), all.get(0).getId());
         assertEquals(testValueBooking.getBooker().getId(), all.get(0).getBooker().getId());
-        assertEquals(testValueBooking.getItem(), all.get(0).getItem());
-        assertEquals(testValueBooking.getStart(), all.get(0).getStart());
-        assertEquals(testValueBooking.getEnd(), all.get(0).getEnd());
+        assertEquals(testValueBooking.getItem().getId(), all.get(0).getItem().getId());
+        assertEquals(testValueBooking.getStart().toLocalDateTime(), all.get(0).getStart());
+        assertEquals(testValueBooking.getEnd().toLocalDateTime(), all.get(0).getEnd());
         assertEquals(testValueBooking.getStatus(), all.get(0).getStatus());
-        assertEquals(testValueBooking.toString(), all.get(0).toString());
-        assertEquals(testValueBooking.hashCode(), all.get(0).hashCode());
 
         when(mockBookingRepository
                 .findAllByItemOwnerIdAndStatus(anyLong(), any(StatusBooking.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> waiting = bookingService.findAllOwner(ownerId, "WAITING", 0, 10);
+        List<BookingDto> waiting = bookingService.findAllOwner(ownerId, "WAITING", 0, 10);
         assertEquals(waiting.size(), 1);
 
         when(mockBookingRepository
                 .findAllByItemOwnerIdAndStatus(anyLong(), any(StatusBooking.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> rejected = bookingService.findAllOwner(ownerId, "REJECTED", 0, 10);
+        List<BookingDto> rejected = bookingService.findAllOwner(ownerId, "REJECTED", 0, 10);
         assertEquals(rejected.size(), 1);
 
         when(mockBookingRepository
                 .findAllByItemOwnerIdAndStartAfter(anyLong(), any(Timestamp.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> future = bookingService.findAllOwner(ownerId, "FUTURE", 0, 10);
+        List<BookingDto> future = bookingService.findAllOwner(ownerId, "FUTURE", 0, 10);
         assertEquals(future.size(), 1);
 
 
         when(mockBookingRepository
                 .findAllByItemOwnerIdAndStartBeforeAndEndAfter(anyLong(), any(Timestamp.class), any(Timestamp.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> current = bookingService.findAllOwner(ownerId, "CURRENT", 0, 10);
+        List<BookingDto> current = bookingService.findAllOwner(ownerId, "CURRENT", 0, 10);
         assertEquals(current.size(), 1);
 
         when(mockBookingRepository
                 .findAllByItemOwnerIdAndEndBefore(anyLong(), any(Timestamp.class), any(PageRequest.class)))
-                .thenReturn(List.of(testValueBooking));
+                .thenReturn(new PageImpl<>(List.of(testValueBooking)));
 
-        List<Booking> past = bookingService.findAllOwner(ownerId, "PAST", 0, 10);
+        List<BookingDto> past = bookingService.findAllOwner(ownerId, "PAST", 0, 10);
         assertEquals(past.size(), 1);
 
         verify(mockUserService, times(6)).getById(ownerId);

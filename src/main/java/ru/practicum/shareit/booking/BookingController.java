@@ -11,7 +11,6 @@ import ru.practicum.shareit.booking.service.BookingService;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/bookings")
@@ -29,9 +28,7 @@ public class BookingController {
                                     @RequestParam(defaultValue = "0") @Min(0) final int from,
                                     @RequestParam(defaultValue = "10") @Min(0) final int size) {
 
-        return bookingService.findAll(bookerId, state, from, size).stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toList());
+        return bookingService.findAll(bookerId, state, from, size);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -41,9 +38,7 @@ public class BookingController {
                                          @RequestParam(defaultValue = "0") @Min(0) final int from,
                                          @RequestParam(defaultValue = "10") @Min(0) final int size) {
 
-        return bookingService.findAllOwner(bookerId, state, from, size).stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toList());
+        return bookingService.findAllOwner(bookerId, state, from, size);
     }
 
     @ResponseStatus(HttpStatus.OK)

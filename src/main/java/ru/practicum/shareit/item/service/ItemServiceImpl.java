@@ -49,7 +49,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> getAll(final long userId, final int from, final int size) {
         Sort sort = Sort.by("id").ascending();
-        List<Item> itemList = itemRepository.findAllByOwnerId(userId, PageRequest.of(from / size, size, sort));
+        List<Item> itemList = itemRepository.findAllByOwnerId(userId, PageRequest.of(from / size, size, sort)).getContent();
 
         return itemList.stream()
                 .map(item -> fillBookingInfoByItem(item, userId))
@@ -76,7 +76,9 @@ public class ItemServiceImpl implements ItemService {
         if (!StringUtils.hasText(text)) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text, PageRequest.of(from / size, size));
+        return itemRepository
+                .findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text, PageRequest.of(from / size, size))
+                .getContent();
     }
 
     @Override

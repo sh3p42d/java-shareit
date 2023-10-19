@@ -96,7 +96,8 @@ public class BookingControllerTest extends GeneratorConverterHelper {
 
     @Test
     void shouldGetAllBooking() throws Exception {
-        when(bookingService.findAll(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of(booking));
+        when(bookingService.findAll(anyLong(), anyString(), anyInt(), anyInt()))
+                .thenReturn(List.of(BookingMapper.toBookingDto(booking)));
 
         mvc.perform(get(url)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
@@ -117,7 +118,8 @@ public class BookingControllerTest extends GeneratorConverterHelper {
 
     @Test
     void shouldGetAllOwnerBooking() throws Exception {
-        when(bookingService.findAllOwner(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of(booking));
+        when(bookingService.findAllOwner(anyLong(), anyString(), anyInt(), anyInt()))
+                .thenReturn(List.of(BookingMapper.toBookingDto(booking)));
 
         mvc.perform(get(url + "/owner")
                         .param("from", "0")

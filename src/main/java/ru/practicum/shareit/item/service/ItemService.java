@@ -16,5 +16,5 @@ public interface ItemService {
 
     List<Item> search(String text, int from, int size);
 
-    Comment addComment(Comment dto, long author, long itemId);
+    Comment addComment(Comment comment, long author, long itemId);
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.StatusBooking;
@@ -108,7 +109,7 @@ public class ItemServiceTest extends GeneratorConverterHelper {
     @Test
     void shouldGetAllItem() {
         when(mockItemRepository.findAllByOwnerId(anyLong(), any(PageRequest.class)))
-                .thenReturn(List.of(testValueItem));
+                .thenReturn(new PageImpl<>(List.of(testValueItem)));
 
         List<Item> all = itemService.getAll(testValueItem.getOwner().getId(), 0, 10);
         assertEquals(1, all.size());
@@ -161,7 +162,7 @@ public class ItemServiceTest extends GeneratorConverterHelper {
     @Test
     void shouldSearchItem() {
         when(mockItemRepository.findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(anyString(), anyString(), any(PageRequest.class)))
-                .thenReturn(List.of(testValueItem));
+                .thenReturn(new PageImpl<>(List.of(testValueItem)));
 
         List<Item> all = itemService.search(testValueItem.getName(), 0, 10);
         assertEquals(1, all.size());
