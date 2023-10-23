@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.item.dto.ItemBookingInfoDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.stream.Collectors;
@@ -28,6 +29,8 @@ public class ItemMapper {
                                 .bookerId(item.getNextBooking().getBooker().getId())
                                 .build() : null)
                 .comments(item.getComments().stream().map(CommentMapper::toCommentDto).collect(Collectors.toList()))
+                .requestId(item.getRequest() != null ?
+                        item.getRequest().getId() : null)
                 .build();
     }
 
@@ -40,6 +43,10 @@ public class ItemMapper {
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())
+                .request(itemDto.getRequestId() != null ?
+                        ItemRequest.builder()
+                                .id(itemDto.getRequestId())
+                                .build() : null)
                 .build();
     }
 }

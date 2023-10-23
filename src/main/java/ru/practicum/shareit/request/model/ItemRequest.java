@@ -1,33 +1,34 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.request.model;
 
 import lombok.*;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@Table(name = "comments")
-public class Comment {
+@Table(name = "request")
+public class ItemRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item", referencedColumnName = "id")
-    @ToString.Exclude
-    private Item item;
+    private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author", referencedColumnName = "id")
     @ToString.Exclude
     private User author;
-    @Column(name = "comment")
-    private String text;
+    @Column(name = "item_description", length = 1024)
+    private String description;
     @Column(name = "created")
     private Timestamp created;
+    @ToString.Exclude
+    @Transient
+    private List<Item> items;
 }

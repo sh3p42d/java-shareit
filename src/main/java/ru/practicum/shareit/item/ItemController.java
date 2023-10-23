@@ -2,26 +2,31 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
+@Validated
 public class ItemController {
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<ItemDto> findAll(@RequestHeader(USER_ID_HEADER) final long owner) {
-        return itemService.getAll(owner).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+    public List<ItemDto> findAll(@RequestHeader(USER_ID_HEADER) final long owner,
+                                 @RequestParam(defaultValue = "0") @Min(0) final int from,
+                                 @RequestParam(defaultValue = "10") @Min(0) final int size) {
+        return itemService.getAll(owner, from, size).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -48,8 +53,10 @@ public class ItemController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam("text") final String text) {
-        return itemService.search(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+    public List<ItemDto> search(@RequestParam("text") final String text,
+                                @RequestParam(defaultValue = "0") @Min(0) final int from,
+                                @RequestParam(defaultValue = "10") @Min(0) final int size) {
+        return itemService.search(text, from, size).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
     @ResponseStatus(HttpStatus.OK)
